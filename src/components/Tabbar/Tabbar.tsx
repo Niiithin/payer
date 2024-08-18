@@ -1,133 +1,144 @@
-/* Imports */
 import React from 'react'
 import { View, Pressable, StyleSheet, Text } from 'react-native'
-
-/* Relative Imports */
-import IconAntDesign from 'react-native-vector-icons/AntDesign'
-import IconMaterial from 'react-native-vector-icons/MaterialCommunityIcons'
-import IconIonicon from 'react-native-vector-icons/Ionicons'
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 
-/* Local Imports */
 import {
 	backgroundColorMain,
-	primaryColor,
-	purpleColor,
-	textColorMain,
+	bgColorSecondary,
+	whiteColor,
+	blackColor,
+	accentColor,
 } from '../../static/colors'
-import { refHeightCalc, refWidthCalc } from '../../static/dimensions'
-import { secondaryFont } from '../../static/font'
 
-// -----------------------------------------------------------------------------
-
-/* Component */
 const TabBar = ({ state, navigation, descriptors }: BottomTabBarProps) => {
-	/* Constants */
 	const focusedOptions = descriptors[state.routes[state.index].key].options
-	console.log('Rendering TabBar', state.routeNames)
+
 	// @ts-ignore
 	if (focusedOptions?.tabBarStyle?.display === 'none') {
 		return null
 	}
 
-	/* Functions */
-	const getTabBarComponent = (item: string, index: number) => {
-		if (item === 'Home') {
-			return (
-				<IconAntDesign
-					size={32 * refWidthCalc}
-					color={index === state.index ? purpleColor : '#939185'}
-					name="home"
-				/>
-			)
-		} else if (item === 'Transactions') {
-			return (
-				<IconMaterial
-					size={32 * refWidthCalc}
-					color={index === state.index ? purpleColor : '#939185'}
-					name="newspaper-variant-outline"
-				/>
-			)
-		} else if (item === 'Profile') {
-			return (
-				<IconMaterial
-					size={32 * refWidthCalc}
-					color={index === state.index ? purpleColor : '#939185'}
-					name="whatsapp"
-				/>
-			)
-		} else if (item === 'Scanner') {
-			return (
-				<IconMaterial
-					size={32 * refWidthCalc}
-					color={index === state.index ? purpleColor : '#939185'}
-					name="wallet-outline"
-				/>
-			)
-		} else {
-			return (
-				<IconIonicon
-					size={30 * refWidthCalc}
-					color={index === state.index ? purpleColor : '#939185'}
-					name="trophy-outline"
-				/>
-			)
+	const getTabBarIcon = (routeName: string, isFocused: boolean) => {
+		let iconName: string
+
+		switch (routeName) {
+			case 'Home':
+				iconName = isFocused ? 'home' : 'home-outline'
+				break
+			case 'Transactions':
+				iconName = isFocused ? 'bank' : 'bank-outline'
+				break
+			case 'Scanner':
+				iconName = 'qrcode-scan'
+				break
+			case 'Profile':
+				iconName = isFocused ? 'account' : 'account-outline'
+				break
+			default:
+				iconName = 'circle'
 		}
+
+		return (
+			<MaterialCommunityIcons
+				name={iconName}
+				size={routeName === 'Scanner' ? 32 : 24}
+				color={
+					isFocused
+						? bgColorSecondary
+						: routeName === 'Scanner'
+						? whiteColor
+						: blackColor
+				}
+			/>
+		)
 	}
 
-	/* Output */
-
 	return (
-		<>
-			<View style={[styles.bottomTabContainer]}>
-				<View style={styles.mainContainer}>
-					{state?.routeNames?.map((item: string, index: number) => (
+		<View style={styles.bottomTabContainer}>
+			{state.routes.map((route, index) => {
+				const { options } = descriptors[route.key]
+				const label =
+					options.tabBarLabel !== undefined
+						? options.tabBarLabel
+						: options.title !== undefined
+						? options.title
+						: route.name
+
+				const isFocused = state.index === index
+
+				const onPress = () => {
+					const event = navigation.emit({
+						type: 'tabPress',
+						target: route.key,
+						canPreventDefault: true,
+					})
+
+					if (!isFocused && !event.defaultPrevented) {
+						navigation.navigate(route.name)
+					}
+				}
+
+				if (route.name === 'Scanner') {
+					return (
 						<Pressable
-							onPress={() => {
-								navigation.navigate(item)
-							}}
-							style={styles.icons}
-							key={index}>
-							{getTabBarComponent(item, index)}
-							<Text
-								style={[
-									styles.textStyle,
-									{
-										color: index === state.index ? primaryColor : '#939185',
-									},
-								]}>
-								{item.toUpperCase()}
-							</Text>
+							key={index}
+							onPress={onPress}
+							style={styles.scannerButton}>
+							{getTabBarIcon(route.name, isFocused)}
 						</Pressable>
-					))}
-				</View>
-			</View>
-		</>
+					)
+				}
+
+				return (
+					<Pressable key={index} onPress={onPress} style={styles.tabButton}>
+						{getTabBarIcon(route.name, isFocused)}
+						<Text
+							style={[
+								styles.tabLabel,
+								{ color: isFocused ? bgColorSecondary : blackColor },
+							]}>
+							{label.toString()}
+						</Text>
+					</Pressable>
+				)
+			})}
+		</View>
 	)
 }
 
-/* Styles */
 const styles = StyleSheet.create({
 	bottomTabContainer: {
-		position: 'absolute',
-		bottom: 0,
-		left: 0,
-		right: 0,
-		height: 60, // Fixed height
-	},
-	mainContainer: {
 		flexDirection: 'row',
+		backgroundColor: whiteColor,
+		height: 60,
+		borderTopWidth: 1,
+		borderTopColor: 'rgba(0,0,0,0.1)',
 		justifyContent: 'space-around',
 		alignItems: 'center',
-		height: '100%',
-		backgroundColor: backgroundColorMain, // Another noticeable color
 	},
-	icons: {
+	tabButton: {
 		alignItems: 'center',
+		justifyContent: 'center',
+		flex: 1,
 	},
-	textStyle: {
-		color: 'white', // Ensure text is visible
+	scannerButton: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: accentColor,
+		width: 64,
+		height: 64,
+		borderRadius: 32,
+		marginTop: -20,
+		elevation: 4,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.25,
+		shadowRadius: 3.84,
+	},
+	tabLabel: {
 		fontSize: 12,
+		marginTop: 4,
 	},
 })
 

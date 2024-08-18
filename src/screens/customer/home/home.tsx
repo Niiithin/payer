@@ -1,84 +1,162 @@
-import { View, Text, StyleSheet } from 'react-native'
 import React from 'react'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import {
+	View,
+	Text,
+	StyleSheet,
+	SafeAreaView,
+	ScrollView,
+	TouchableOpacity,
+} from 'react-native'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import ShopCard from '../../../components/ShopCard/ShopCard'
 import {
 	backgroundColorMain,
-	greyColor,
-	primaryColor,
-	primaryColorLight,
-	purpleColorLight,
-	textColorBlack,
+	bgColorSecondary,
+	blackColor,
+	whiteColor,
 } from '../../../static/colors'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import { RootStackParamList } from '../../../models/navigation'
 
-const Home = () => {
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>
+
+const Home: React.FC = () => {
+	const navigation = useNavigation<HomeScreenNavigationProp>()
+
 	return (
-		<View>
-			<View>
-				<Text>Account</Text>
-			</View>
-
-			<View style={styles.accountStack}>
-				<View style={styles.accountPopover}>
-					<MaterialCommunityIcons name="account" size={35} color={'grey'} />
+		<SafeAreaView style={styles.container}>
+			<ScrollView contentContainerStyle={styles.scrollContent}>
+				<View style={styles.header}>
+					<TouchableOpacity
+						style={styles.accountPopover}
+						onPress={() => navigation.navigate('Profile')}>
+						<MaterialCommunityIcons
+							name="account"
+							size={24}
+							color={whiteColor}
+						/>
+					</TouchableOpacity>
+					<Text style={styles.headerTitle}>Dashboard</Text>
+					<View style={styles.iconContainer}>
+						<TouchableOpacity style={styles.iconButton}>
+							<MaterialCommunityIcons
+								name="qrcode-scan"
+								size={22}
+								color={whiteColor}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.iconButton}>
+							<MaterialCommunityIcons
+								name="bell-outline"
+								size={22}
+								color={whiteColor}
+							/>
+						</TouchableOpacity>
+					</View>
 				</View>
-				<MaterialCommunityIcons name="scanner" size={25} color={'grey'} />
 
-				<View style={styles.notifyPopover}>
-					<MaterialCommunityIcons name="bell" size={25} color={'grey'} />
+				<View style={styles.transactionBox}>
+					<Text style={styles.transactionHeading}>Total Balance</Text>
+					<Text style={styles.transactionAmount}>₹27,444</Text>
+					<TouchableOpacity
+						style={styles.viewDetailsButton}
+						onPress={() => navigation.navigate('Transactions')}>
+						<Text style={styles.viewDetailsText}>View Transactions</Text>
+						<MaterialCommunityIcons
+							name="chevron-right"
+							size={20}
+							color={bgColorSecondary}
+						/>
+					</TouchableOpacity>
 				</View>
-			</View>
 
-			<View style={styles.transactionBox}>
-				<Text style={styles.transactionHeading}>Your Transactions</Text>
-				<Text style={styles.transactionAmount}>$27444</Text>
-			</View>
-			<Text style={styles.text}>Home</Text>
-		</View>
+				<Text style={styles.sectionTitle}>Your Shops</Text>
+
+				<ShopCard />
+				<ShopCard />
+				<ShopCard />
+			</ScrollView>
+		</SafeAreaView>
 	)
 }
 
 export default Home
 
 const styles = StyleSheet.create({
-	text: {
-		fontSize: 12,
-		color: 'black',
+	container: {
+		flex: 1,
+		backgroundColor: backgroundColorMain,
 	},
-	transactionBox: {
-		marginTop: 20,
-		marginHorizontal: 20,
-		borderRadius: 12,
-		paddingVertical: 10,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-		paddingLeft: 20,
-		fontWeight: '200',
-		backgroundColor: primaryColor,
+	scrollContent: {
+		padding: 20,
 	},
-	transactionHeading: {
-		fontSize: 15,
-		color: backgroundColorMain,
-	},
-	transactionAmount: {
-		fontSize: 40,
-		fontWeight: '600',
-	},
-	accountStack: {
-		display: 'flex',
+	header: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		marginHorizontal: 20,
+		marginBottom: 25,
+	},
+	headerTitle: {
+		fontSize: 22,
+		fontWeight: '700',
+		color: '#2C3E50',
 	},
 	accountPopover: {
-		backgroundColor: purpleColorLight,
-		padding: 5,
-		borderRadius: 50,
+		backgroundColor: bgColorSecondary,
+		padding: 10,
+		borderRadius: 12,
 	},
-	notifyPopover: {
-		backgroundColor: purpleColorLight,
-		padding: 5,
-		borderRadius: 50,
+	iconContainer: {
+		flexDirection: 'row',
+	},
+	iconButton: {
+		backgroundColor: bgColorSecondary,
+		padding: 10,
+		borderRadius: 12,
+		marginLeft: 10,
+	},
+	transactionBox: {
+		backgroundColor: whiteColor,
+		borderRadius: 16,
+		padding: 20,
+		marginBottom: 25,
+		shadowColor: blackColor,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 8,
+		elevation: 3,
+	},
+	transactionHeading: {
+		fontSize: 16,
+		color: '#7F8C8D',
+		marginBottom: 5,
+	},
+	transactionAmount: {
+		fontSize: 36,
+		fontWeight: 'bold',
+		color: '#2C3E50',
+		marginBottom: 15,
+	},
+	viewDetailsButton: {
+		backgroundColor: '#ECF0F1',
+		paddingVertical: 8,
+		paddingHorizontal: 12,
+		borderRadius: 8,
+		flexDirection: 'row',
+		alignItems: 'center',
+		alignSelf: 'flex-start',
+	},
+	viewDetailsText: {
+		color: '#1E88E5',
+		fontWeight: '600',
+		fontSize: 14,
+		marginRight: 5,
+	},
+	sectionTitle: {
+		fontSize: 20,
+		fontWeight: '700',
+		color: '#2C3E50',
+		marginBottom: 15,
 	},
 })

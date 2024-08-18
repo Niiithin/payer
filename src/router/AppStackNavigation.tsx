@@ -20,6 +20,11 @@ const AppStackNavigation = () => {
 				name="BottomTab"
 				component={BottomTabNavigation}
 			/>
+			<AppStackNavigator.Screen
+				options={{ headerShown: false }}
+				name="Profile"
+				component={Profile}
+			/>
 		</AppStackNavigator.Navigator>
 	)
 }

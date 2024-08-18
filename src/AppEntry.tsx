@@ -4,11 +4,7 @@ import Router from './router'
 import { StyleSheet, Text, View } from 'react-native'
 
 const AppEntry = () => {
-	return (
-		// <View style={styles.container}>
-		<Router />
-		// </View>
-	)
+	return <Router />
 }
 
 export default AppEntry

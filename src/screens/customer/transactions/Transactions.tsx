@@ -1,61 +1,200 @@
-import { View, Text, StyleSheet } from 'react-native'
-import React from 'react'
-import TransactionCard from '../../../components/TransactionCard/TransactionCard'
+import React, { useMemo } from 'react'
+import {
+	View,
+	Text,
+	StyleSheet,
+	SectionList,
+	SectionListData,
+	SafeAreaView,
+	TouchableOpacity,
+} from 'react-native'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import { purpleColor, purpleColorLight } from '../../../static/colors'
+import TransactionCard from '../../../components/TransactionCard/TransactionCard'
+import { customerTransactionData } from '../../../constants/appConstants'
+import {
+	backgroundColorMain,
+	bgColorSecondary,
+	whiteColor,
+	blackColor,
+} from '../../../static/colors'
 
-const Transactions = () => {
-	return (
-		<View style={styles.rootContainer}>
-			<View style={styles.container}>
-				<Text style={styles.mainHeading}> History</Text>
-				<View style={styles.downloadBox}>
-					<View style={styles.downloadStatement}>
-						<Text style={styles.downloadText}>Download Statement</Text>
-						<MaterialCommunityIcons name="download" size={15} color={'grey'} />
-					</View>
-					<View style={styles.downloadStatement}>
-						<Text style={styles.downloadText}>Filter</Text>
-						<MaterialCommunityIcons name="filter" size={15} color={'grey'} />
-					</View>
-				</View>
-				<TransactionCard />
+interface Transaction {
+	id: number
+	date: string
+	category: string
+	price: number
+	time: string
+}
+
+interface Section extends SectionListData<Transaction> {
+	title: string
+}
+
+const Transactions: React.FC = () => {
+	const sortedAndGroupedData: Section[] = useMemo(() => {
+		const today = new Date()
+
+		// Sort transactions by date, closest to today first
+		const sortedData = [...customerTransactionData].sort((a, b) => {
+			const diffA = Math.abs(new Date(a.date).getTime() - today.getTime())
+			const diffB = Math.abs(new Date(b.date).getTime() - today.getTime())
+			return diffA - diffB
+		})
+
+		// Group transactions by date
+		const groupedData = sortedData.reduce<Record<string, Transaction[]>>(
+			(acc, transaction) => {
+				const date = transaction.date
+				if (!acc[date]) {
+					acc[date] = []
+				}
+				acc[date].push(transaction)
+				return acc
+			},
+			{},
+		)
+
+		// Convert to format required by SectionList
+		return Object.keys(groupedData).map((date) => ({
+			title: date,
+			data: groupedData[date],
+		}))
+	}, [])
+
+	const renderSectionHeader = ({
+		section: { title },
+	}: {
+		section: Section
+	}) => (
+		<View style={styles.stickyHeaderContainer}>
+			<View style={styles.stickyHeader}>
+				<Text style={styles.stickyHeaderText}>{title}</Text>
 			</View>
 		</View>
 	)
+
+	const renderItem = ({ item }: { item: Transaction }) => (
+		<TransactionCard
+			amount={item.price}
+			date={`${new Date(item.date).toLocaleDateString()} ${item.time}`}
+		/>
+	)
+
+	return (
+		<SafeAreaView style={styles.container}>
+			<View style={styles.header}>
+				<TouchableOpacity style={styles.iconButton}>
+					<MaterialCommunityIcons
+						name="arrow-left"
+						size={24}
+						color={whiteColor}
+					/>
+				</TouchableOpacity>
+				<Text style={styles.headerTitle}>Transactions</Text>
+				<TouchableOpacity style={styles.iconButton}>
+					<MaterialCommunityIcons name="magnify" size={24} color={whiteColor} />
+				</TouchableOpacity>
+			</View>
+
+			<View style={styles.content}>
+				<View style={styles.filterContainer}>
+					<TouchableOpacity style={styles.filterButton}>
+						<Text style={styles.filterText}>Download Statement</Text>
+						<MaterialCommunityIcons
+							name="download"
+							size={18}
+							color={bgColorSecondary}
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.filterButton}>
+						<Text style={styles.filterText}>Filter</Text>
+						<MaterialCommunityIcons
+							name="filter"
+							size={18}
+							color={bgColorSecondary}
+						/>
+					</TouchableOpacity>
+				</View>
+
+				<SectionList<Transaction, Section>
+					sections={sortedAndGroupedData}
+					renderItem={renderItem}
+					renderSectionHeader={renderSectionHeader}
+					stickySectionHeadersEnabled={true}
+					showsVerticalScrollIndicator={false}
+					keyExtractor={(item) => item.id.toString()}
+				/>
+			</View>
+		</SafeAreaView>
+	)
 }
 
-export default Transactions
-
 const styles = StyleSheet.create({
-	rootContainer: {
-		backgroundColor: '#e0ebf1',
-	},
 	container: {
-		margin: 20,
+		flex: 1,
+		backgroundColor: backgroundColorMain,
 	},
-	mainHeading: {
-		fontSize: 25,
-		fontWeight: '600',
-		color: 'black',
-		textAlign: 'center',
-	},
-
-	downloadBox: {
-		display: 'flex',
+	header: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		padding: 5,
-		paddingHorizontal: 10,
+		backgroundColor: bgColorSecondary,
+		paddingVertical: 15,
+		paddingHorizontal: 20,
 	},
-	downloadText: {
-		fontSize: 15,
+	headerTitle: {
+		fontSize: 22,
+		fontWeight: '700',
+		color: whiteColor,
 	},
-	downloadStatement: {
-		display: 'flex',
+	iconButton: {
+		padding: 10,
+	},
+	content: {
+		flex: 1,
+		padding: 20,
+	},
+	filterContainer: {
 		flexDirection: 'row',
-		backgroundColor: 'black',
-		borderRadius: 4,
+		justifyContent: 'space-between',
+		marginBottom: 20,
+	},
+	filterButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: whiteColor,
+		paddingVertical: 8,
+		paddingHorizontal: 12,
+		borderRadius: 8,
+		shadowColor: blackColor,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
+	},
+	filterText: {
+		color: bgColorSecondary,
+		fontWeight: '600',
+		fontSize: 14,
+		marginRight: 5,
+	},
+	stickyHeaderContainer: {
+		alignItems: 'center',
+		backgroundColor: backgroundColorMain,
+		paddingVertical: 10,
+	},
+	stickyHeader: {
+		backgroundColor: bgColorSecondary,
+		padding: 10,
+		borderRadius: 20,
+		minWidth: 120,
+	},
+	stickyHeaderText: {
+		color: whiteColor,
+		fontSize: 16,
+		fontWeight: 'bold',
+		textAlign: 'center',
 	},
 })
+
+export default Transactions
